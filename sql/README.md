@@ -14,6 +14,7 @@ If you prefer to run them separately:
 1. **`01_create_messages_table.sql`** - Creates the messages table
 2. **`02_enable_rls.sql`** - Enables Row Level Security
 3. **`03_create_policy.sql`** - Creates the RLS policy to allow operations
+4. **`04_add_stream_fields.sql`** - Adds stream_date and stream_title fields to messages table
 
 ## How to Run
 

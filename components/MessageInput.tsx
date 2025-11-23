@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, KeyboardEvent } from 'react';
-import { IoArrowUpOutline, IoTimeOutline } from 'react-icons/io5';
+import { useState, KeyboardEvent, useRef } from 'react';
+import { IoArrowUpOutline, IoTimeOutline, IoCreateOutline } from 'react-icons/io5';
 
 interface MessageInputProps {
   onSend: (text: string) => void;
@@ -9,13 +9,17 @@ interface MessageInputProps {
   onTypingChange: (isTyping: boolean) => void;
   showHistory: boolean;
   onToggleHistory: () => void;
+  streamTitle: string;
+  onOpenStreamTitleModal: () => void;
 }
 
-export default function MessageInput({ onSend, isTyping, onTypingChange, showHistory, onToggleHistory }: MessageInputProps) {
+export default function MessageInput({ onSend, isTyping, onTypingChange, showHistory, onToggleHistory, streamTitle, onOpenStreamTitleModal }: MessageInputProps) {
   const [input, setInput] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSend = () => {
-    const trimmed = input.trim();
+    // Remove only leading and trailing whitespace, but preserve line breaks
+    const trimmed = input.replace(/^\s+|\s+$/g, '');
     if (trimmed) {
       onSend(trimmed);
       setInput('');
@@ -23,11 +27,12 @@ export default function MessageInput({ onSend, isTyping, onTypingChange, showHis
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
+    // Shift+Enter allows line breaks (default behavior)
   };
 
   const handleChange = (value: string) => {
@@ -51,14 +56,27 @@ export default function MessageInput({ onSend, isTyping, onTypingChange, showHis
           >
             <IoTimeOutline size={18} />
           </button>
+          <button
+            type="button"
+            onClick={onOpenStreamTitleModal}
+            className={`flex-shrink-0 rounded-full p-1.5 transition-colors ${
+              streamTitle 
+                ? 'bg-gray-200 text-gray-700' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+            title={streamTitle || 'Set Stream Title'}
+          >
+            <IoCreateOutline size={18} />
+          </button>
           <div className="flex-1 relative">
-            <input
-              type="text"
+            <textarea
+              ref={textareaRef}
               value={input}
               onChange={(e) => handleChange(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Type a message..."
-              className="placeholder:font-light placeholder:text-sm input-rounded w-full border-gray-200 border-[1px] p-1.5 pl-3 pr-12 bg-white"
+              rows={1}
+              className="placeholder:font-light placeholder:text-sm input-rounded w-full border-gray-200 border-[1px] p-1.5 pl-3 pr-12 bg-white resize-none overflow-y-auto leading-5 h-[38px]"
             />
             <button 
               type="submit"

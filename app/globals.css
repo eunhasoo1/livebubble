@@ -44,6 +44,12 @@ html {
   border-bottom-left-radius: 2px;
 }
 
+/* Multiline message bubble - more rounded corners */
+.message-bubble-multiline {
+  border-radius: 18px;
+  border-bottom-left-radius: 2px;
+}
+
 /* Tail for receive messages (left side) - SVG Mask for perfect curve & transparent background */
 .message-bubble-receive::before {
   content: "";

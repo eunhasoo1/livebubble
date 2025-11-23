@@ -3,6 +3,8 @@ export interface Message {
   text: string;
   created_at: string;
   displayed_at?: string | null;
+  stream_date?: string | null;
+  stream_title?: string | null;
 }
 
 export interface MessageWithTimer extends Message {

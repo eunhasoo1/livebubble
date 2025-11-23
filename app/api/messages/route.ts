@@ -15,18 +15,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { text } = await request.json();
+    const { text, stream_date, stream_title } = await request.json();
 
-    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+    // Remove only leading and trailing whitespace, but preserve line breaks
+    const trimmedText = text.replace(/^\s+|\s+$/g, '');
+    
+    if (!text || typeof text !== 'string' || trimmedText.length === 0) {
       return NextResponse.json(
         { error: 'Message text is required' },
         { status: 400 }
       );
     }
 
+    const messageData: {
+      text: string;
+      stream_date?: string;
+      stream_title?: string | null;
+    } = {
+      text: trimmedText,
+    };
+
+    // Add stream_date if provided, otherwise use current date
+    if (stream_date) {
+      messageData.stream_date = stream_date;
+    }
+
+    // Add stream_title if provided
+    if (stream_title !== undefined) {
+      messageData.stream_title = stream_title || null;
+    }
+
     const { data, error } = await supabase
       .from('messages')
-      .insert({ text: text.trim() })
+      .insert(messageData)
       .select()
       .single();
 
@@ -48,7 +69,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       return NextResponse.json(
@@ -57,10 +78,35 @@ export async function GET() {
       );
     }
 
-    const { data, error } = await supabase
+    // Get query parameters for filtering
+    const searchParams = request.nextUrl.searchParams;
+    const streamDate = searchParams.get('stream_date');
+    const streamTitle = searchParams.get('stream_title');
+
+    // Build query
+    let query = supabase
       .from('messages')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*');
+
+    // Filter by stream_date if provided
+    if (streamDate) {
+      query = query.eq('stream_date', streamDate);
+    }
+
+    // Filter by stream_title if provided
+    if (streamTitle !== null) {
+      if (streamTitle === '') {
+        // If empty string, filter for null or empty stream_title
+        query = query.or('stream_title.is.null,stream_title.eq.');
+      } else {
+        query = query.eq('stream_title', streamTitle);
+      }
+    }
+
+    // Order by created_at descending
+    query = query.order('created_at', { ascending: false });
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Supabase error:', error);
