@@ -32,15 +32,16 @@ export async function GET() {
     }
 
     // Get unique stream titles (most recent first)
-    const uniqueTitles = Array.from(
-      new Map(
-        (data || [])
-          .map(item => [item.stream_title, item])
-          .filter(([title]) => title)
-      ).values()
-    )
+    const titleMap = new Map<string, { stream_title: string; created_at: string }>();
+    
+    (data || []).forEach((item: { stream_title: string | null; created_at: string }) => {
+      if (item.stream_title && !titleMap.has(item.stream_title)) {
+        titleMap.set(item.stream_title, item as { stream_title: string; created_at: string });
+      }
+    });
+
+    const uniqueTitles = Array.from(titleMap.values())
       .map(item => item.stream_title)
-      .filter((title, index, self) => self.indexOf(title) === index)
       .slice(0, 1); // Limit to 1 most recent title
 
     return NextResponse.json(uniqueTitles || []);
