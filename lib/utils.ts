@@ -22,4 +22,58 @@ export function calculateReadingTime(text: string): number {
   return Math.round((calculatedTime + bufferTime) / 100) * 100;
 }
 
+/**
+ * Expand common abbreviations for clearer TTS output
+ */
+function expandAbbreviations(text: string): string {
+  const replacements: Record<string, string> = {
+    'idk': "I don't know",
+    'btw': "by the way",
+  };
+
+  let expandedText = text;
+  Object.entries(replacements).forEach(([abbr, full]) => {
+    // Case insensitive replacement with word boundaries
+    const regex = new RegExp(`\\b${abbr}\\b`, 'gi');
+    expandedText = expandedText.replace(regex, full);
+  });
+
+  return expandedText;
+}
+
+/**
+ * Fetch and play text-to-speech audio for a given text
+ */
+export async function playTTS(text: string): Promise<void> {
+  const textToPlay = expandAbbreviations(text);
+  
+  try {
+    const response = await fetch('/api/tts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text: textToPlay }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to fetch TTS audio');
+    }
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    
+    // Cleanup URL after playing
+    audio.onended = () => {
+      URL.revokeObjectURL(audioUrl);
+    };
+
+    await audio.play();
+  } catch (error) {
+    console.error('TTS playback error:', error);
+  }
+}
+
 

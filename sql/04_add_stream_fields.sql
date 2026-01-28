@@ -9,3 +9,4 @@ CREATE INDEX IF NOT EXISTS idx_messages_stream_date ON messages(stream_date);
 -- Create index on stream_title for faster queries
 CREATE INDEX IF NOT EXISTS idx_messages_stream_title ON messages(stream_title);
 
+

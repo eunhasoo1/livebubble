@@ -55,3 +55,4 @@ Make sure to add these in Vercel project settings:
 
 These are found in your Supabase project settings under API.
 
+

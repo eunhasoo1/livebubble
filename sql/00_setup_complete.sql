@@ -22,3 +22,4 @@ CREATE POLICY "Allow all operations on messages"
   WITH CHECK (true);
 
 
+

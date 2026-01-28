@@ -8,7 +8,7 @@ import MessageInput from '@/components/MessageInput';
 import MessageHistory from '@/components/MessageHistory';
 import StreamTitleModal from '@/components/StreamTitleModal';
 import TimeDivider from '@/components/TimeDivider';
-import { calculateReadingTime } from '@/lib/utils';
+import { calculateReadingTime, playTTS } from '@/lib/utils';
 
 export default function Home() {
   const [messages, setMessages] = useState<MessageWithTimer[]>([]);
@@ -74,6 +74,9 @@ export default function Home() {
     try {
       // Show typing indicator immediately
       setIsTyping(true);
+
+      // Play TTS audio immediately (parallel with DB save)
+      playTTS(messageToSend);
 
       // Get current date in YYYY-MM-DD format
       const today = new Date().toISOString().split('T')[0];
